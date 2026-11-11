@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SERFISH · Cotizador</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,500;0,600;0,700;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<style>
+:root{--pk:#ff2e83;--pk2:#d4146a;--bk:#111;--bg:#e6f0fc;--card:#fff;--tx:#14141a;--mu:#6b6f80;--ln:#e7e9f0}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;background:var(--bg);color:var(--tx);padding:12px 12px 120px}
+.shell{max-width:760px;margin:0 auto;background:var(--bk);border-radius:28px;padding:10px}
+.top{display:flex;align-items:center;gap:12px;padding:12px 14px;color:#fff}
+.logo{font-style:italic;font-weight:900;font-size:26px;letter-spacing:-.5px}
+.logo small{display:block;font-size:9px;font-weight:600;color:var(--pk);letter-spacing:2px;font-style:normal}
+.tabs{margin-left:auto;display:flex;gap:6px;background:#222;border-radius:99px;padding:4px}
+.tabs button{border:0;background:none;color:#bbb;font:600 13px Poppins;padding:8px 14px;border-radius:99px;cursor:pointer}
+.tabs button.on{background:var(--pk);color:#fff}
+.main{background:#fff;border-radius:20px;padding:18px 16px}
+h2{margin:0 0 12px;font-size:20px}
+h3{margin:0 0 10px;font-size:15px}
+.sec{margin-bottom:22px}
+label.f{display:block;font-size:12px;color:var(--mu);margin-bottom:4px;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid .wide{grid-column:1/-1}
+input,select{width:100%;font:500 15px Poppins;padding:12px 12px;border:1.5px solid var(--ln);border-radius:14px;background:#f7f8fc;color:var(--tx)}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--pk);outline-offset:1px}
+.hint{font-size:12px;color:var(--mu);margin-top:6px}
+.svc{border-radius:20px;padding:14px;margin-bottom:12px}
+.svc h3{display:flex;align-items:center;gap:8px}
+.opt{display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%;text-align:left;border:2px solid transparent;background:rgba(255,255,255,.75);border-radius:14px;padding:11px 12px;margin-top:8px;font:600 13px Poppins;color:var(--tx);cursor:pointer}
+.opt b{white-space:nowrap}
+.opt.on{background:#111;color:#fff;border-color:var(--pk)}
+.opt.on b{color:var(--pk)}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 35%)}
+.bar div{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:center;background:var(--bk);border-radius:22px;padding:10px 10px 10px 18px;color:#fff}
+.bar .t{flex:1;font-size:12px;color:#bbb}
+.bar .t b{display:block;font-size:22px;color:#fff;line-height:1.1}
+.btn{border:0;border-radius:99px;font:700 14px Poppins;padding:13px 20px;cursor:pointer;background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff}
+.btn.alt{background:#f0f1f7;color:var(--tx)}
+.row{display:grid;grid-template-columns:1fr 92px 36px;gap:6px;margin-top:6px}
+.row input{padding:10px}
+.x{border:0;background:#fde3ee;color:var(--pk2);border-radius:12px;font-size:18px;cursor:pointer}
+.add{margin-top:8px;border:2px dashed var(--ln);background:none;border-radius:14px;padding:9px;width:100%;font:600 13px Poppins;color:var(--mu);cursor:pointer}
+#out{display:none;margin-top:18px}
+#out canvas{width:100%;height:auto;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;display:none;z-index:9}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="top">
+    <div class="logo">SERFISH<small>FIESTAS Y EVENTOS</small></div>
+    <div class="tabs"><button id="t1" class="on">Cotizar</button><button id="t2">Precios</button></div>
+  </div>
+  <div class="main">
+    <div id="v1">
+      <div class="sec">
+        <h2>Datos del cliente</h2>
+        <div class="grid">
+          <div class="wide"><label class="f" for="cli">Nombre del cliente</label><input id="cli" placeholder="Escribe el nombre" autocomplete="off"></div>
+          <div><label class="f" for="ev">Evento</label><select id="ev"></select></div>
+          <div><label class="f" for="fe">Fecha</label><input id="fe" type="date"></div>
+          <div><label class="f" for="sp">Tipo de espacio</label><select id="sp"></select></div>
+          <div><label class="f" for="gu">Invitados</label><select id="gu"></select></div>
+        </div>
+        <div class="hint" id="rec"></div>
+      </div>
+      <div class="sec"><h2>Servicios</h2><div id="svcs"></div></div>
+      <div class="sec">
+        <h2>Movilidad y descuento</h2>
+        <div class="grid">
+          <div><label class="f" for="zo">Zona</label><select id="zo"></select></div>
+          <div><label class="f" for="de">Descuento</label><select id="de"></select></div>
+        </div>
+      </div>
+      <div id="out">
+        <div class="acts">
+          <button class="btn" id="dl">Descargar flyer</button>
+          <button class="btn alt" id="sh">Compartir</button>
+          <button class="btn alt" id="cp">Copiar texto</button>
+        </div>
+        <canvas id="cv"></canvas>
+      </div>
+    </div>
+    <div id="v2" style="display:none">
+      <h2>Precios y ajustes</h2>
+      <div class="hint" style="margin:-6px 0 14px">Los cambios se guardan solos en este dispositivo.</div>
+      <div id="set"></div>
+      <button class="btn alt" id="rs" style="margin-top:18px">Restaurar precios originales</button>
+    </div>
+  </div>
+</div>
+<div class="bar" id="bar"><div>
+  <span class="t">Total<b id="tot">S/ 0</b></span>
+  <button class="btn" id="gen">Generar flyer</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const DEF={
+ services:[
+  {id:'bar',n:'Servicio de bar',ic:'🍸',c:'#e6dff5',o:[
+   {l:'Bartender sin insumos',p:300,i:['Bartender profesional','Barra móvil','Servicio por 5 horas','Sin insumos']},
+   {l:'Bartender con insumos',p:550,i:['Bartender profesional','Barra móvil','Servicio por 5 horas','Insumos incluidos']},
+   {l:'100 tragos',p:450,i:['Bartender profesional','Barra móvil','100 tragos preparados']},
+   {l:'200 tragos',p:800,i:['Bartender profesional','Barra móvil','200 tragos preparados']}]},
+  {id:'son',n:'Sonido',ic:'🔊',c:'#d6efdf',o:[
+   {l:'Sonido (2 parlantes)',p:150,i:['2 parlantes profesionales','Sistema de sonido']},
+   {l:'Sonido (4 parlantes)',p:250,i:['4 parlantes profesionales','Sistema de sonido']},
+   {l:'Sonido (6 parlantes)',p:380,i:['6 parlantes profesionales','Sistema de sonido']}]},
+  {id:'dj',n:'DJ',ic:'🎧',c:'#faf0cf',o:[
+   {l:'DJ',p:250,i:['DJ profesional','Animación musical durante el evento']},
+   {l:'DJ + animación',p:350,i:['DJ profesional','Animación y juegos','Música durante el evento']}]},
+  {id:'luz',n:'Luces',ic:'💡',c:'#dcebfb',o:[
+   {l:'Luces básicas',p:100,i:['Luces de ambiente','Efectos de color']},
+   {l:'Luces robóticas',p:200,i:['Luces robóticas','Efectos de color']},
+   {l:'Luces full show',p:320,i:['Luces robóticas','Láser y efectos','Humo']}]}
+ ],
+ zones:[{n:'Tangay',p:50},{n:'Chimbote centro',p:30},{n:'Nuevo Chimbote',p:40},{n:'Otra zona',p:80}]
+};
+let S;
+try{S=JSON.parse(localStorage.getItem('serfish_v1'))}catch(e){}
+if(!S||!S.services)S=JSON.parse(JSON.stringify(DEF));
+const save=()=>{try{localStorage.setItem('serfish_v1',JSON.stringify(S))}catch(e){}};
+let sel={};
+const money=n=>'S/ '+Math.round(n);
+const EV=['Cumpleaños','Boda','Quinceañero','Aniversario','Bautizo','Evento corporativo','Otro'];
+const SP=[['Casa / departamento',25],['Salón de eventos',40],['Local / discoteca',50],['Aire libre',30]];
+
+function fill(){
+ $('ev').innerHTML=EV.map(e=>`<option>${e}</option>`).join('');
+ $('sp').innerHTML=SP.map(s=>`<option>${s[0]}</option>`).join('');
+ let g=[];for(let n=10;n<=100;n+=10)g.push(n);for(let n=150;n<=500;n+=50)g.push(n);
+ $('gu').innerHTML=g.map(n=>`<option value="${n}">${n} invitados</option>`).join('');
+ $('gu').value=30;
+ $('de').innerHTML=[0,5,10,15,20].map(n=>`<option value="${n}">${n?n+'% de descuento':'Sin descuento'}</option>`).join('');
+ zones();
+}
+function zones(){
+ const v=$('zo').value;
+ $('zo').innerHTML='<option value="-1">Sin movilidad</option>'+S.zones.map((z,i)=>`<option value="${i}">${z.n} (${money(z.p)})</option>`).join('');
+ if(v&&$('zo').querySelector(`[value="${v}"]`))$('zo').value=v;
+}
+function svcs(){
+ $('svcs').innerHTML=S.services.map((s,si)=>`<div class="svc" style="background:${s.c}"><h3><span>${s.ic}</span>${s.n}</h3>`+
+  s.o.map((o,oi)=>`<button class="opt ${sel[si]===oi?'on':''}" data-s="${si}" data-o="${oi}"><span>${o.l}</span><b>${money(o.p)}</b></button>`).join('')+'</div>').join('');
+ $('svcs').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  const s=+b.dataset.s,o=+b.dataset.o;
+  if(sel[s]===o)delete sel[s];else sel[s]=o;
+  svcs();calc();
+ });
+}
+function items(){
+ return Object.keys(sel).map(k=>{const s=S.services[k],o=s.o[sel[k]];return{s,o}});
+}
+function calc(){
+ const it=items(),sub=it.reduce((a,x)=>a+x.o.p,0);
+ const zi=+$('zo').value,mov=zi>=0&&S.zones[zi]?S.zones[zi].p:0;
+ const dp=+$('de').value,dsc=sub*dp/100;
+ const total=sub-dsc+mov;
+ $('tot').textContent=money(total);
+ const f=SP.find(x=>x[0]===$('sp').value)[1],n=+$('gu').value;
+ let sp=Math.max(2,Math.ceil(n/f)*2);
+ $('rec').textContent=`Para ${n} invitados en este espacio se recomiendan ${sp} parlantes.`;
+ return{it,sub,mov,dp,dsc,total,zi};
+}
+['ev','fe','sp','gu','zo','de'].forEach(i=>$(i).onchange=calc);
+
+/* ---------- Precios ---------- */
+function settings(){
+ $('set').innerHTML=S.services.map((s,si)=>`<div class="svc" style="background:${s.c}"><h3><span>${s.ic}</span>${s.n}</h3>`+
+  s.o.map((o,oi)=>`<div class="row"><input data-k="l" data-s="${si}" data-o="${oi}" value="${o.l}" aria-label="Nombre"><input data-k="p" data-s="${si}" data-o="${oi}" type="number" inputmode="numeric" value="${o.p}" aria-label="Precio"><button class="x" data-del="${si},${oi}" aria-label="Quitar">×</button></div>`).join('')+
+  `<button class="add" data-add="${si}">+ Agregar opción</button></div>`).join('')+
+  `<div class="svc" style="background:#fde3ee"><h3><span>🚚</span>Zonas de movilidad</h3>`+
+  S.zones.map((z,i)=>`<div class="row"><input data-z="n" data-i="${i}" value="${z.n}" aria-label="Zona"><input data-z="p" data-i="${i}" type="number" inputmode="numeric" value="${z.p}" aria-label="Precio"><button class="x" data-delz="${i}" aria-label="Quitar">×</button></div>`).join('')+
+  `<button class="add" data-addz="1">+ Agregar zona</button></div>`;
+}
+$('set').oninput=e=>{
+ const d=e.target.dataset;
+ if(d.k){const o=S.services[d.s].o[d.o];o[d.k]=d.k==='p'?(+e.target.value||0):e.target.value}
+ else if(d.z){const z=S.zones[d.i];z[d.z]=d.z==='p'?(+e.target.value||0):e.target.value}
+ save();
+};
+$('set').onclick=e=>{
+ const d=e.target.dataset;
+ if(d.del){const[a,b]=d.del.split(',');S.services[a].o.splice(b,1)}
+ else if(d.add){S.services[d.add].o.push({l:'Nueva opción',p:100,i:['Nueva opción']})}
+ else if(d.delz){S.zones.splice(d.delz,1)}
+ else if(d.addz){S.zones.push({n:'Nueva zona',p:50})}
+ else return;
+ sel={};save();settings();
+};
+$('rs').onclick=()=>{if(confirm('¿Restaurar todos los precios originales?')){S=JSON.parse(JSON.stringify(DEF));sel={};save();settings()}};
+function tab(n){
+ $('v1').style.display=n==1?'':'none';$('v2').style.display=n==2?'':'none';
+ $('bar').style.display=n==1?'':'none';
+ $('t1').classList.toggle('on',n==1);$('t2').classList.toggle('on',n==2);
+ if(n==2)settings();else{zones();svcs();calc()}
+}
+$('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
+
+/* ---------- Flyer ---------- */
+const W=1080,F='Poppins, Arial, sans-serif';
+const fmtDate=v=>{if(!v)return 'Fecha por definir';const[a,b,c]=v.split('-');return `${c}/${b}/${a}`};
+function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
+function grad(c,x,y,w,h){const g=c.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,'#ff2e83');g.addColorStop(1,'#d4146a');return g}
+function pill(c,x,y,w,h,fill,t,font,col){rr(c,x,y,w,h,h/2);c.fillStyle=fill;c.fill();c.fillStyle=col;c.font=font;c.textAlign='center';c.textBaseline='middle';c.fillText(t,x+w/2,y+h/2+2)}
+async function draw(){
+ try{await Promise.all(['italic 900 40px Poppins','italic 800 40px Poppins','italic 700 40px Poppins','600 30px Poppins','500 30px Poppins'].map(f=>document.fonts.load(f)))}catch(e){}
+ const r=calc(),it=r.it;
+ const cards=it.map(x=>Math.max(190,100+x.o.i.length*46));
+ const sumRows=it.length+1+(r.dsc?1:0)+(r.zi>=0?1:0);
+ const sumH=Math.max(330,150+sumRows*52+110);
+ const H=330+it.reduce((a,x,i)=>a+cards[i]+22,0)+sumH+(r.zi>=0?190:20)+140;
+ const cv=$('cv');cv.width=W;cv.height=H;
+ const c=cv.getContext('2d');
+ c.fillStyle='#fff6fa';c.fillRect(0,0,W,H);
+ const bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#fff');bg.addColorStop(1,'#ffe3ef');c.fillStyle=bg;c.fillRect(0,0,W,H);
+ /* cabecera */
+ c.fillStyle='#ff2e83';c.beginPath();c.moveTo(0,0);c.lineTo(650,0);c.quadraticCurveTo(560,255,0,285);c.fill();
+ c.fillStyle='#000';c.beginPath();c.moveTo(0,0);c.lineTo(630,0);c.quadraticCurveTo(540,235,0,262);c.fill();
+ c.textAlign='left';c.textBaseline='alphabetic';c.lineJoin='round';
+ c.font=`italic 900 112px ${F}`;c.lineWidth=14;c.strokeStyle='#ff2e83';c.strokeText('SERFISH',50,150);
+ c.fillStyle='#fff';c.fillText('SERFISH',50,150);
+ c.fillStyle='#ff2e83';c.font=`700 24px ${F}`;c.fillText('FIESTAS Y EVENTOS',130,196);
+ c.textAlign='right';c.fillStyle='#000';c.font=`italic 800 62px ${F}`;c.fillText('Cotización de',W-50,100);
+ pill(c,W-540,122,490,104,grad(c,W-540,122,490,104),'SERVICIOS',`italic 900 76px ${F}`,'#fff');
+ /* cliente */
+ const nm=($('cli').value.trim()||'Cliente');
+ c.fillStyle='#111';c.textAlign='left';c.font=`italic 800 40px ${F}`;c.fillText(nm,50,318);
+ const ev=$('ev').value+' · '+fmtDate($('fe').value)+' · '+$('gu').value+' invitados';
+ c.fillStyle='#d4146a';c.font=`600 25px ${F}`;c.textAlign='right';c.fillText(ev,W-50,318);
+ /* servicios */
+ let y=350;
+ it.forEach((x,i)=>{
+  const h=cards[i];
+  c.save();c.shadowColor='rgba(212,20,106,.18)';c.shadowBlur=24;c.shadowOffsetY=8;rr(c,40,y,W-80,h,34);c.fillStyle='#fff';c.fill();c.restore();
+  c.beginPath();c.arc(112,y+66,48,0,7);c.fillStyle=grad(c,64,y+18,96,96);c.fill();
+  c.font=`46px ${F}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle='#fff';c.fillText(x.s.ic,112,y+70);
+  c.font=`italic 900 44px ${F}`;const tw=c.measureText(x.s.n.toUpperCase()).width+60;
+  rr(c,166,y+34,tw,66,33);c.fillStyle='#000';c.fill();
+  c.fillStyle='#fff';c.textAlign='left';c.fillText(x.s.n.toUpperCase(),196,y+69);
+  c.font=`600 33px ${F}`;
+  x.o.i.forEach((t,j)=>{const ty=y+142+j*46;c.fillStyle='#ff2e83';c.font=`900 34px ${F}`;c.fillText('✓',76,ty);c.fillStyle='#111';c.font=`600 33px ${F}`;c.fillText(t,124,ty)});
+  pill(c,W-340,y+h/2-48,280,96,grad(c,W-340,y,280,96),money(x.o.p),`italic 900 64px ${F}`,'#fff');
+  y+=h+22;
+ });
+ /* resumen */
+ c.save();c.shadowColor='rgba(0,0,0,.1)';c.shadowBlur=20;rr(c,40,y,W-80,sumH,34);c.fillStyle='#fff';c.fill();c.restore();
+ c.textAlign='left';c.textBaseline='middle';
+ c.font=`italic 900 44px ${F}`;
+ rr(c,70,y+60,290,66,33);c.fillStyle='#000';c.fill();c.fillStyle='#fff';c.fillText('RESUMEN',100,y+95);
+ rr(c,70,y+132,350,66,33);c.fillStyle=grad(c,70,y,350,66);c.fill();c.fillStyle='#fff';c.fillText('DEL SERVICIO',100,y+167);
+ c.fillStyle='#ff2e83';c.fillRect(450,y+40,4,sumH-150);
+ let ry=y+70;
+ const row=(a,b,bold,hi)=>{
+  if(hi){rr(c,470,ry-26,W-540,52,10);c.fillStyle='#ffd3e6';c.fill()}
+  c.fillStyle='#111';c.textAlign='left';c.font=`${bold?700:500} 31px ${F}`;c.fillText(a,484,ry);
+  c.textAlign='right';c.fillText(b,W-84,ry);ry+=52;
+ };
+ it.forEach(x=>row(x.o.l,money(x.o.p)));
+ row('Subtotal',money(r.sub),true,true);
+ if(r.dsc)row(`Descuento (${r.dp}%)`,'- '+money(r.dsc));
+ if(r.zi>=0)row(`Movilidad (zona ${S.zones[r.zi].n})`,money(r.mov));
+ const ty=y+sumH-70;
+ rr(c,470,ty-10,W-520,92,46);c.fillStyle='#000';c.fill();
+ c.textAlign='left';c.fillStyle='#fff';c.font=`italic 800 33px ${F}`;c.fillText('TOTAL DEL SERVICIO',500,ty+36);
+ pill(c,W-400,ty-14,350,100,grad(c,W-400,ty,350,100),money(r.total),`italic 900 68px ${F}`,'#fff');
+ y+=sumH+22;
+ /* movilidad */
+ if(r.zi>=0){
+  c.textAlign='left';c.textBaseline='middle';
+  c.fillStyle='#ff2e83';c.font=`italic 900 80px ${F}`;c.fillText('🚚',70,y+80);
+  c.fillStyle='#000';c.font=`italic 900 46px ${F}`;c.fillText('MOVILIDAD',200,y+50);
+  pill(c,200,y+82,200,64,grad(c,200,y,200,64),money(r.mov),`italic 900 42px ${F}`,'#fff');
+  c.fillStyle='#ff2e83';c.fillRect(470,y+20,4,130);
+  c.textAlign='left';c.fillStyle='#000';c.font=`italic 900 50px ${F}`;c.fillText('Zona '+S.zones[r.zi].n,505,y+52);
+  c.font=`500 28px ${F}`;c.fillText('Incluye traslado de ida.',505,y+102);
+  c.fillText('El retorno es asumido por ',505,y+138);
+  const w=c.measureText('El retorno es asumido por ').width;c.fillStyle='#ff2e83';c.font=`italic 800 28px ${F}`;c.fillText('SERFISH.',505+w,y+138);
+  y+=190;
+ }else y+=20;
+ /* pie */
+ rr(c,60,y+10,W-120,100,50);c.fillStyle='#000';c.fill();
+ c.font=`italic 700 36px ${F}`;const a='¡Todo lo que necesitas para un ',b='evento inolvidable',d='!';
+ const wa=c.measureText(a).width;c.font=`italic 800 36px ${F}`;const wb=c.measureText(b).width;c.font=`italic 700 36px ${F}`;const wd=c.measureText(d).width;
+ let x0=(W-wa-wb-wd)/2;c.textAlign='left';c.fillStyle='#fff';c.fillText(a,x0,y+62);
+ c.fillStyle='#ff2e83';c.font=`italic 800 36px ${F}`;c.fillText(b,x0+wa,y+62);
+ c.fillStyle='#fff';c.font=`italic 700 36px ${F}`;c.fillText(d,x0+wa+wb,y+62);
+}
+function text(){
+ const r=calc();
+ let t=`*SERFISH · Cotización*\nCliente: ${$('cli').value.trim()||'—'}\n${$('ev').value} · ${fmtDate($('fe').value)} · ${$('gu').value} invitados\n\n`;
+ r.it.forEach(x=>t+=`• ${x.o.l}: ${money(x.o.p)}\n`);
+ t+=`\nSubtotal: ${money(r.sub)}\n`;
+ if(r.dsc)t+=`Descuento (${r.dp}%): -${money(r.dsc)}\n`;
+ if(r.zi>=0)t+=`Movilidad (${S.zones[r.zi].n}): ${money(r.mov)}\n`;
+ return t+`*TOTAL: ${money(r.total)}*`;
+}
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
+function blob(){return new Promise(r=>$('cv').toBlob(r,'image/png'))}
+$('gen').onclick=async()=>{
+ if(!Object.keys(sel).length){toast('Marca al menos un servicio');return}
+ await draw();$('out').style.display='block';
+ $('out').scrollIntoView({behavior:'smooth',block:'start'});
+};
+$('dl').onclick=async()=>{
+ const b=await blob(),a=document.createElement('a');
+ a.href=URL.createObjectURL(b);a.download='cotizacion-serfish-'+(($('cli').value.trim()||'cliente').replace(/\s+/g,'-').toLowerCase())+'.png';
+ a.click();
+};
+$('sh').onclick=async()=>{
+ try{
+  const b=await blob(),f=new File([b],'cotizacion-serfish.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],text:text()});
+  else if(navigator.share)await navigator.share({text:text()});
+  else toast('Tu navegador no permite compartir. Usa Descargar.');
+ }catch(e){}
+};
+$('cp').onclick=async()=>{try{await navigator.clipboard.writeText(text());toast('Texto copiado')}catch(e){toast('No se pudo copiar')}};
+
+fill();svcs();calc();
+</script>
+</body>
+</html>
